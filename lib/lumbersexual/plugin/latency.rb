@@ -35,7 +35,7 @@ module Lumbersexual
         @start_time = Time.now
         Timeout::timeout(@options[:timeout]) {
           logger = LogStashLogger.new(type: :udp, host: 'logstash.q', port: 8125)
-          logger.info '#{@uuid}'
+          logger.info @uuid
           puts "Logged #{@uuid} at #{Time.now} (#{Time.now.to_i})"
           until @found do
             result = elastic.search index: index_name, q: @uuid

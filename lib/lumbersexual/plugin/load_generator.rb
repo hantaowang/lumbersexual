@@ -68,7 +68,7 @@ module Lumbersexual
 
               sleep pause
               mutex.synchronize {
-                logger.info '#{ident}'
+                logger.info ident
                 @global_count += 1
                 statsd.increment [ facility, priority, 'messages_sent' ].join('.') if @options[:statsdhost]
               }
