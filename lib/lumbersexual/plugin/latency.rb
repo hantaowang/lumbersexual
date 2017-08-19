@@ -3,7 +3,7 @@
 require "statsd-ruby"
 require "securerandom"
 require "uri"
-require "syslog"
+require "logstash-logger"
 require "timeout"
 require "elasticsearch"
 require "logger"
@@ -34,11 +34,9 @@ module Lumbersexual
         @sleep_count = 0
         @start_time = Time.now
         Timeout::timeout(@options[:timeout]) {
-          syslog = Syslog.open('lumbersexual-ping', Syslog::LOG_CONS | Syslog::LOG_NDELAY | Syslog::LOG_PID, Syslog::LOG_INFO)
-          syslog.log(Syslog::LOG_WARNING, @uuid)
+          logger = LogStashLogger.new(type: :udp, host: 'logstash.q', port: 8125)
+          logger.info '#{@uuid}'
           puts "Logged #{@uuid} at #{Time.now} (#{Time.now.to_i})"
-          syslog.close
-
           until @found do
             result = elastic.search index: index_name, q: @uuid
             @found = true if result['hits']['total'] > 0

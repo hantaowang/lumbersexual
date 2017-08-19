@@ -55,6 +55,7 @@ module Lumbersexual
           threads << Thread.new {
             # Configure telemetry
             statsd = Statsd.new(@options[:statsdhost]).tap { |s| s.namespace = "lumbersexual.thread.#{SecureRandom.uuid}" } if @options[:statsdhost]
+            logger = LogStashLogger.new(type: :udp, host: 'logstash.q', port: 8125)
 
             while true do
               # Connect to syslog with some sane @options and log a message
@@ -67,11 +68,9 @@ module Lumbersexual
 
               sleep pause
               mutex.synchronize {
-                syslog = Syslog.open(ident, Syslog::LOG_CONS | Syslog::LOG_NDELAY | Syslog::LOG_PID, priority)
-                syslog.log(facility, message)
+                logger.info '#{ident}'
                 @global_count += 1
                 statsd.increment [ facility, priority, 'messages_sent' ].join('.') if @options[:statsdhost]
-                syslog.close
               }
 
             end
