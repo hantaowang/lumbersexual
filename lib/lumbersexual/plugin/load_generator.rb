@@ -1,9 +1,10 @@
 #!/usr/bin/env ruby
 
-require "syslog"
 require "thread"
 require "timeout"
+require "syslog"
 require "statsd-ruby"
+require "logstash-logger"
 require "securerandom"
 require "uri"
 
@@ -40,8 +41,6 @@ module Lumbersexual
         puts "Threads: #{@options[:threads]}"
         puts "Rate per thread: #{@options[:rate]}/s"
         puts "Total rate: #{@options[:rate] * @options[:threads]}/s"
-        puts "Minimum words per message: #{@options[:minwords]}"
-        puts "Maximum words per message: #{@options[:maxwords]}"
         puts "Statsd host: #{@options[:statsdhost]}" if @options[:statsdhost]
         puts "Running ..."
 
@@ -55,12 +54,12 @@ module Lumbersexual
           threads << Thread.new {
             # Configure telemetry
             statsd = Statsd.new(@options[:statsdhost]).tap { |s| s.namespace = "lumbersexual.thread.#{SecureRandom.uuid}" } if @options[:statsdhost]
-            logger = LogStashLogger.new(type: :udp, host: 'logstash.q', port: 8125)
+            logger = LogStashLogger.new(type: :udp, host: 'logstash.q', port: 8125, buffer_max_interval: 1, buffer_max_items: 500)
 
             while true do
               # Connect to syslog with some sane @options and log a message
               message = String.new
-              number_of_words = rand(@options[:minwords]..@options[:maxwords])
+              number_of_words = 1
               words.sample(number_of_words).each { |w| message << "#{w} " }
               ident = "lumbersexual-#{words.sample}"
               facility = facilities.sample
