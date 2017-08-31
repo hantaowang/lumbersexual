@@ -61,7 +61,7 @@ module Lumbersexual
               message = String.new
               number_of_words = 1
               words.sample(number_of_words).each { |w| message << "#{w} " }
-              ident = "lumbersexual-#{words.sample}"
+              ident = "lumbersexual-#{words.sample}-#{Time.now.strftime('%H.%M.%S')}"
               facility = facilities.sample
               priority = priorities.sample
 
