@@ -10,7 +10,7 @@ require "logger"
 
 module Lumbersexual
   module Plugin
-    class Latency
+    class LoadLatency
 
       def initialize(options, *args)
         @options = options
@@ -31,9 +31,25 @@ module Lumbersexual
         end
 
         @uuid = SecureRandom.uuid.delete('-')
+        @uuidexp = SecureRandom.uuid.delete('-')
         @sleep_count = 0
         @start_time = Time.now
+        logger = LogStashLogger.new(type: :tcp, host: 'logstash.q', port: 9125, buffer_max_interval: 0.1, buffer_max_items: 1000000)
+        @count = 0
+        words = []
+        raise "Unable to find dictionary file at #{@options[:dictionaryfile]}" unless File.exist?(@options[:dictionaryfile])
+        File.open(@options[:dictionaryfile]).each_line { |l| words << l.chomp }
+        puts "Logging #{@options[:count]} messages with uuid #{@uuidexp}"
+        @start_time = Time.now
         Timeout::timeout(@options[:timeout]) {
+          while (@count < @options[:count]) do
+            message = String.new
+            number_of_words = 1
+            words.sample(number_of_words).each { |w| message << "#{w} " }
+            ident = "lumbersexual-#{@uuidexp}-#{@count}-#{words.sample}-#{Time.now.strftime('%H.%M.%S')}"
+            logger.info ident
+            @count = @count + 1
+          end
           logger.info @uuid
           puts "Logged #{@uuid} at #{Time.now} (#{Time.now.to_i})"
           until @found do

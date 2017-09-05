@@ -54,7 +54,7 @@ module Lumbersexual
           threads << Thread.new {
             # Configure telemetry
             statsd = Statsd.new(@options[:statsdhost]).tap { |s| s.namespace = "lumbersexual.thread.#{SecureRandom.uuid}" } if @options[:statsdhost]
-            logger = LogStashLogger.new(type: :udp, host: 'logstash.q', port: 8125, buffer_max_interval: 1, buffer_max_items: 500)
+            logger = LogStashLogger.new(type: :udp, host: 'logstash.q', port: 8125, buffer_max_interval: 1, buffer_max_items: 1000)
 
             while true do
               # Connect to syslog with some sane @options and log a message
@@ -87,7 +87,7 @@ module Lumbersexual
         elapsed = end_time - @start_time
         rate = @global_count / elapsed
         statsd_global = Statsd.new(@options[:statsdhost]).tap { |s| s.namespace = "lumbersexual.run" } if @options[:statsdhost]
-        puts "Sent: #{@global_count}" 
+        puts "Sent: #{@global_count}"
         statsd_global.gauge 'messages_total', @global_count if @options[:statsdhost]
         puts "Elapsed time: #{elapsed}"
         statsd_global.timing 'elapsed', elapsed if @options[:statsdhost]

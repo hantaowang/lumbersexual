@@ -16,9 +16,10 @@ options = Slop.parse do |o|
   o.bool    '-a', '--all', 'search all indices rather than today\'s in latency mode', default: nil
   o.string  '-D', '--dictionaryfile', 'path to dictionary file (default: /etc/dictionaries-common/words)', default: '/words'
   o.array   '-f', '--facilities', 'additional comma-seperated facilities', default: []
-  o.bool    '-h', '--help', 'print this message' 
+  o.bool    '-h', '--help', 'print this message'
   o.integer '-i', '--interval', 'in latency mode, the interval in seconds to sleep between index queries (default 0.1)', default: 0.1
-  o.bool    '-l', '--latency', 'run in latency rather than generation mode (default: no)', default: nil
+  o.bool    '-la', '--latency', 'run in latency mode (default: no)', default: false
+  o.bool    '-lo', '--load', 'run in load generation mode (default: no)', default: false
   o.bool    '-L', '--log', 'in latency mode log elasticsearch output (default: no)', default: false
   o.integer '-M', '--maxwords', 'maximum number of words per message (default: 20)', default: 20
   o.integer '-m', '--minwords', 'minimum number of words per message (default: 3)', default: 3
@@ -28,6 +29,7 @@ options = Slop.parse do |o|
   o.integer '-T', '--threads', 'number of threads (defaults to number of cores * 2)', default: nprocessors * 2
   o.integer '-t', '--timeout', 'length of execution. 0 for forever (default: 0)', default: 0
   o.string  '-u', '--uri', 'elasticsearch uri when run in latency mode (default: http://localhost:9200/)', default: URI::parse("http://localhost:9200/")
+  o.integer  '-c', '--count', 'number of messages to send (default: 500)', default: 500
 end
 
 if options.help?
@@ -41,13 +43,18 @@ trap('INT') {
   raise Interrupt
 }
 
-case options[:latency]
-when true
+if options[:latency] and options[:load]
+  require '/lumbersexual/lib/lumbersexual/plugin/load_latency.rb'
+  plugin = Lumbersexual::Plugin::LoadLatency.new(options)
+elsif options[:latency]
   require 'lumbersexual/plugin/latency'
   plugin = Lumbersexual::Plugin::Latency.new(options)
-else
+elsif options[:load]
   require 'lumbersexual/plugin/load_generator'
   plugin = Lumbersexual::Plugin::LoadGenerator.new(options)
+else
+  puts "Must specifiy load and/or latency"
+  exit
 end
 
 begin
