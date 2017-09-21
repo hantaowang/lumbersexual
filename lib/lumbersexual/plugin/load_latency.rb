@@ -7,6 +7,8 @@ require "logstash-logger"
 require "timeout"
 require "elasticsearch"
 require "logger"
+require "thread"
+
 
 module Lumbersexual
   module Plugin
@@ -34,7 +36,11 @@ module Lumbersexual
         @uuidexp = SecureRandom.uuid.delete('-')
         @sleep_count = 0
         @start_time = Time.now
-        logger = LogStashLogger.new(type: :tcp, host: 'logstash.q', port: 9125, buffer_max_interval: 0.1, buffer_max_items: 1000000)
+        if @options[:udp]
+          logger = LogStashLogger.new(type: :udp, host: 'logstash.q', port: 8125, buffer_max_interval: 0.25, buffer_max_items: 1000000)
+        else
+          logger = LogStashLogger.new(type: :tcp, host: 'logstash.q', port: 9125, buffer_max_interval: 0.25, buffer_max_items: 1000000)
+        end
         @count = 0
         words = []
         raise "Unable to find dictionary file at #{@options[:dictionaryfile]}" unless File.exist?(@options[:dictionaryfile])

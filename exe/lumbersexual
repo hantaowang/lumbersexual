@@ -29,7 +29,8 @@ options = Slop.parse do |o|
   o.integer '-T', '--threads', 'number of threads (defaults to number of cores * 2)', default: nprocessors * 2
   o.integer '-t', '--timeout', 'length of execution. 0 for forever (default: 0)', default: 0
   o.string  '-u', '--uri', 'elasticsearch uri when run in latency mode (default: http://localhost:9200/)', default: URI::parse("http://localhost:9200/")
-  o.integer  '-c', '--count', 'number of messages to send (default: 500)', default: 500
+  o.integer '-c', '--count', 'number of messages to send (default: 500)', default: 500
+  o.bool    '-U', '--udp', 'switches to a udp connection (default: false)', default: false
 end
 
 if options.help?
