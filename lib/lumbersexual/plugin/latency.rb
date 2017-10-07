@@ -18,15 +18,17 @@ module Lumbersexual
       end
 
       def perform
+
+        logstashhost = ENV['lshost']
         if @options[:log]
           elastic = Elasticsearch::Client.new url: @options[:uri], logger: Logger.new(STDERR), log: @options[:log]
         else
           elastic = Elasticsearch::Client.new url: @options[:uri]
         end
         if @options[:udp]
-          logger = LogStashLogger.new(type: :udp, host: 'logstash.q', port: 8125, buffer_max_interval: 0.25, buffer_max_items: 1000000)
+          logger = LogStashLogger.new(type: :udp, host: logstashhost, port: 8125, buffer_max_interval: 0.25, buffer_max_items: 1000000)
         else
-          logger = LogStashLogger.new(type: :tcp, host: 'logstash.q', port: 9125, buffer_max_interval: 0.25, buffer_max_items: 1000000)
+          logger = LogStashLogger.new(type: :tcp, host: logstashhost, port: 9125, buffer_max_interval: 0.25, buffer_max_items: 1000000)
         end
         if @options[:all]
           index_name = '_all'

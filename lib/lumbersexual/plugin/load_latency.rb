@@ -36,10 +36,12 @@ module Lumbersexual
         @uuidexp = SecureRandom.uuid.delete('-')
         @sleep_count = 0
         @start_time = Time.now
+        logstashhost = ENV['lshost']
+
         if @options[:udp]
-          logger = LogStashLogger.new(type: :udp, host: 'logstash.q', port: 8125, buffer_max_interval: 0.25, buffer_max_items: 1000000)
+          logger = LogStashLogger.new(type: :udp, host: logstashhost, port: 8125, buffer_max_interval: 0.25, buffer_max_items: 1000000)
         else
-          logger = LogStashLogger.new(type: :tcp, host: 'logstash.q', port: 9125, buffer_max_interval: 0.25, buffer_max_items: 1000000)
+          logger = LogStashLogger.new(type: :tcp, host: logstashhost, port: 9125, buffer_max_interval: 0.25, buffer_max_items: 1000000)
         end
         @count = 0
         words = []

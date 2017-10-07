@@ -16,6 +16,8 @@ module Lumbersexual
       end
 
       def perform
+        logstashhost = ENV['lshost']
+
         # Get our word corpus and define the priorities and facilities we can use
         facilities = [ Syslog::LOG_ALERT, Syslog::LOG_CRIT, Syslog::LOG_ERR, Syslog::LOG_WARNING, Syslog::LOG_NOTICE, Syslog::LOG_INFO ]
         @options[:facilities].each { |f| facilities << Object.const_get('Syslog').const_get("LOG_#{f.upcase}") }
@@ -56,9 +58,9 @@ module Lumbersexual
             # Configure telemetry
             statsd = Statsd.new(@options[:statsdhost]).tap { |s| s.namespace = "lumbersexual.thread.#{SecureRandom.uuid}" } if @options[:statsdhost]
             if @options[:udp]
-              logger = LogStashLogger.new(type: :udp, host: 'logstash.q', port: 8125, buffer_max_interval: 0.25, buffer_max_items: 1000000)
+              logger = LogStashLogger.new(type: :udp, host: logstashhost, port: 8125, buffer_max_interval: 0.25, buffer_max_items: 1000000)
             else
-              logger = LogStashLogger.new(type: :tcp, host: 'logstash.q', port: 9125, buffer_max_interval: 0.25, buffer_max_items: 1000000)
+              logger = LogStashLogger.new(type: :tcp, host: logstashhost, port: 9125, buffer_max_interval: 0.25, buffer_max_items: 1000000)
             end
             while true do
               # Connect to syslog with some sane @options and log a message
